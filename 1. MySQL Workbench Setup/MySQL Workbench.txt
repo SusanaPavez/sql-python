@@ -1,0 +1,5 @@
+1. USE -> twitter, Ejecutar // Esto llama a la base de datos
+2. SELECT * FROM users // Esto selecciona todas las tablas
+3. INSERT INTO users // Inserta registro nuevo
+4. UPDATE 'twitter' SET 'handle' = 'papasfritas' WHERE 'id' = 7
+5. SET SQL_SAFE_UPDATES6- DELETE FROM 'twitter'.'users' WHERE ('id' = '8')
