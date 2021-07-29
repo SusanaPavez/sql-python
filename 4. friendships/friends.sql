@@ -81,3 +81,44 @@ UNLOCK TABLES;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2019-02-08 11:20:17
+
+-- Usando el siguiente ERD como referencia, escribe una consulta SQL que devuelva una lista de usuarios junto con los nombres de sus amigos.
+
+SELECT users.first_name AS Nombre, users.last_name AS Apellido,
+user2.first_name AS Nombre_Amigo, user2.last_name AS Apellido_Amigo
+FROM users
+JOIN friendships ON users.id = friendships.user_id
+JOIN users AS user2 ON friendships.friend_id = user2.id;
+
+
+-- Devuelva a todos los usuarios que son amigos de Kermit, asegúrese de que sus nombres se muestren en los resultados.
+
+SELECT users.id, CONCAT(users.first_name, " ", users.last_name) AS Amigos_de_Kermit FROM users -- Me gusta concatenar, no lo usaré muy seguido pero me gusta
+JOIN friendships ON users.id = friendships.user_id
+JOIN users AS friend ON friend.id = friendships.friend_id
+WHERE friend.first_name = "Kermit";
+
+
+-- Devuelve el recuento de todas las amistades.
+
+SELECT users.id, users.first_name AS Nombre, users.last_name AS Apellido, COUNT(friend.id) AS Amigos FROM users
+LEFT JOIN friendships ON users.id = friendships.user_id -- Esto va a tomar un JOIN a la izquierda
+LEFT JOIN users AS friend ON friendships.friend_id = friend.id -- Une los usuarios como amigos usando friend id como referencia
+GROUP BY users.id; -- Con esto se verá las lista de usuarios y sus amigos, si no estuviera sólo mostraria el primer usuario
+
+
+-- Descubre quién tiene más amigos y devuelve el recuento de sus amigos.
+
+-- Este no lo tengo terminado. Quiero ver una opción de usar el max englobando a al contar id de amigos
+
+SELECT users.first_name AS Nombre, users.last_name as Apellido, COUNT(friend.id) AS Amigos FROM users
+LEFT JOIN friendships ON users.id = friendships.user_id
+LEFT JOIN users AS friend ON friendships.friend_id = friend.id
+GROUP BY users.id
+ORDER BY COUNT(friend.id) DESC; -- Para que quede más ordenado
+
+
+-- Crea un nuevo usuario y hazlos amigos de Eli Byers, Kermit The Frog y Marky Mark.
+-- Devuelve a los amigos de Eli en orden alfabético.
+-- Eliminar a Marky Mark de los amigos de Eli.
+-- Devuelve todas las amistades, mostrando solo el nombre y apellido de ambos amigos
