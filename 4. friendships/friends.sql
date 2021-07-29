@@ -82,43 +82,77 @@ UNLOCK TABLES;
 
 -- Dump completed on 2019-02-08 11:20:17
 
--- Usando el siguiente ERD como referencia, escribe una consulta SQL que devuelva una lista de usuarios junto con los nombres de sus amigos.
 
-SELECT users.first_name AS Nombre, users.last_name AS Apellido,
-user2.first_name AS Nombre_Amigo, user2.last_name AS Apellido_Amigo
+SELECT users.first_name AS First_Name, users.last_name AS Last_Name,
+user2.first_name AS Friend_Name, user2.last_name AS Friend_Last_Name
 FROM users
 JOIN friendships ON users.id = friendships.user_id
 JOIN users AS user2 ON friendships.friend_id = user2.id;
 
-
 -- Devuelva a todos los usuarios que son amigos de Kermit, asegúrese de que sus nombres se muestren en los resultados.
 
-SELECT users.id, CONCAT(users.first_name, " ", users.last_name) AS Amigos_de_Kermit FROM users -- Me gusta concatenar, no lo usaré muy seguido pero me gusta
+SELECT users.first_name AS Nombre, users.last_name AS Apellido FROM users 
 JOIN friendships ON users.id = friendships.user_id
-JOIN users AS friend ON friend.id = friendships.friend_id
+JOIN users as friend ON friend.id = friendships.friend_id
 WHERE friend.first_name = "Kermit";
 
 
 -- Devuelve el recuento de todas las amistades.
 
-SELECT users.id, users.first_name AS Nombre, users.last_name AS Apellido, COUNT(friend.id) AS Amigos FROM users
-LEFT JOIN friendships ON users.id = friendships.user_id -- Esto va a tomar un JOIN a la izquierda
-LEFT JOIN users AS friend ON friendships.friend_id = friend.id -- Une los usuarios como amigos usando friend id como referencia
-GROUP BY users.id; -- Con esto se verá las lista de usuarios y sus amigos, si no estuviera sólo mostraria el primer usuario
-
-
--- Descubre quién tiene más amigos y devuelve el recuento de sus amigos.
-
--- Este no lo tengo terminado. Quiero ver una opción de usar el max englobando a al contar id de amigos
-
-SELECT users.first_name AS Nombre, users.last_name as Apellido, COUNT(friend.id) AS Amigos FROM users
+SELECT users.first_name AS Nombre, users.last_name AS Apellido, COUNT(friend.id) AS Amigos FROM users
 LEFT JOIN friendships ON users.id = friendships.user_id
 LEFT JOIN users AS friend ON friendships.friend_id = friend.id
-GROUP BY users.id
-ORDER BY COUNT(friend.id) DESC; -- Para que quede más ordenado
+GROUP BY users.id;
+
+
+
+-- Descubre quién tiene más amigos y devuelve el recuento de sus amigos
+
+SELECT users.first_name AS Nombre, users.last_name AS Apellido, COUNT(friend.id) AS Amigos FROM users
+LEFT JOIN friendships ON users.id = friendships.user_id
+LEFT JOIN users AS friend ON friendships.friend_id = friend.id
+GROUP BY users.id 
+ORDER BY COUNT(friend.id) DESC; -- No me convence esta solución porque pienso que es sólo escoger un solo valor pero MySQL no permite usar comandos dentro de comandos
 
 
 -- Crea un nuevo usuario y hazlos amigos de Eli Byers, Kermit The Frog y Marky Mark.
+
+SELECT * FROM friendships; 
+SELECT * FROM users; -- Aquí tengo los ID de los futuros amigos
+
+INSERT INTO users (first_name, last_name, created_at, updated_at)
+VALUES ('Mr.', 'Hopper', NOW(), NOW());
+INSERT INTO friendships (user_id, friend_id, created_at, updated_at)
+VALUES (6, 2, NOW(), NOW()); -- Id del Monstruo Comegalletas, Id de Eli, Creado, Actualizado
+INSERT INTO friendships (user_id, friend_id, created_at, updated_at)
+VALUES (6, 4, NOW(), NOW()); -- Id del Monstruo Comegalletas, Id de René, Creado, Actualizado
+INSERT INTO friendships (user_id, friend_id, created_at, updated_at)
+VALUES (6, 5, NOW(), NOW()); -- Id del Monstruo Comegalletas, Id de Marky Mark, Creado, Actualizado
+
+
 -- Devuelve a los amigos de Eli en orden alfabético.
+
+SELECT CONCAT_WS(" ", users.first_name, users.last_name) AS 'Nombre', 
+CONCAT_WS(" ", friend.first_name, friend.last_name) AS "Amigo" FROM users
+JOIN friendships ON users.id = friendships.user_id
+JOIN users AS friend ON friendships.friend_id = friend.id
+WHERE users.id = 2 
+ORDER BY friend.first_name ASC;
+
+
 -- Eliminar a Marky Mark de los amigos de Eli.
+
+DELETE FROM friendships
+WHERE user_id = 2 AND friend_id = 5; -- 2 es Eli, 5 es Marky Mark, ahora son enemigos
+
+
 -- Devuelve todas las amistades, mostrando solo el nombre y apellido de ambos amigos
+
+SELECT CONCAT(users.first_name," ", users.last_name) AS Usuario, 
+CONCAT(friend.first_name," ", friend.last_name) AS Amigo FROM users
+JOIN friendships ON users.id = friendships.user_id
+JOIN users AS friend ON friendships.friend_id = friend.id;
+
+-- Me encanta Plaza Sésamo! Con él fui niña y aprendí a ser mamá (https://www.youtube.com/watch?v=5BDVvB7Xx1w). 
+-- También con Crush, de Buscando a Nemo (Este trozo me enseñó más sobre maternidad que cualquier libro de
+-- maternidad en el mundo :https://www.youtube.com/watch?v=A3Fxx9o2Nvs)
