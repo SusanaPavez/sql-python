@@ -110,38 +110,98 @@ SELECT client_id as Cliente, SUM(amount) AS Ingresos_Totales FROM billing WHERE 
 
 SELECT client_id AS Id_Cliente, domain_name AS Sitio_Web FROM sites WHERE client_id = 10;
 
+
 -- 4. ¿Qué consulta ejecutaría para obtener el número total de sitios creados por mes por año para el cliente con una 
 -- identificación de 1? ¿Qué pasa con el cliente = 20?
 
-SELECT client_id AS Id_Cliente, COUNT(domain_name) AS Cant_Sitios, MONTHNAME(created_datetime) AS Mes_Creacion, YEAR(created_datetime) AS Año 
-FROM sites WHERE client_id = 20; 
+SELECT client_id AS Id_Cliente, COUNT(domain_name) AS Sitio_Web, MONTHNAME(created_datetime) AS Mes, YEAR(created_datetime) AS Año FROM sites 
+WHERE client_id = 20
+GROUP BY client_id, created_datetime;
+
 
 
 -- 5. ¿Qué consulta ejecutaría para obtener el número total de clientes potenciales generados para cada uno de los sitios 
 -- entre el 1 de enero de 2011 y el 15 de febrero de 2011?
 
-SELECT sites.domain_name, sites.client_id
-FROM sites
-INNER JOIN leads
-ON sites.client_id = leads.leads_id
-WHERE registered_datetime >= "2011/01/01" AND registered_datetime  <= "2011/02/15"
+SELECT a.domain_name AS Dominio, COUNT(leads_id) AS Total_Leads, b.registered_datetime AS Fecha
+FROM sites a, leads b
+WHERE a.site_id = b.site_id 
+AND b.registered_datetime >= "2011/01/01" 
+AND b.registered_datetime <= "2011/02/15"
+GROUP BY a.domain_name, b.registered_datetime;
 
--- ORDER BY DATE(registered_datetime >= "2011/01/01" AND registered_datetime  <= "2011/02/15");
-
--- seleccionar número de potenciales clientes
--- establecer fecha WHERE registered_datetime >= "2011/01/01" AND registered_datetime  <= "2011/02/15";
 
 
 -- 6. ¿Qué consulta ejecutaría para obtener una lista de nombres de clientes y el número total de clientes potenciales que 
 -- hemos generado para cada uno de nuestros clientes entre el 1 de enero de 2011 y el 31 de diciembre de 2011?
+
+
+SELECT CONCAT(clients.first_name," ", clients.last_name) AS Cliente, COUNT(leads.leads_id) AS Cuenta_Leads
+FROM clients
+LEFT JOIN sites ON clients.client_id = sites.client_id
+LEFT JOIN leads ON sites.site_id = leads.site_id
+WHERE leads.registered_datetime >= "2011/01/01" AND leads.registered_datetime <= "2011/12/31"
+GROUP BY clients.client_id
+ORDER BY clients.client_id ASC;
+
+
+
+
 -- 7. ¿Qué consulta ejecutaría para obtener una lista de nombres de clientes y el número total de clientes potenciales que 
 -- hemos generado para cada cliente cada mes entre los meses 1 y 6 del año 2011?
+
+
+SELECT CONCAT(clients.first_name," ", clients.last_name) AS Cliente, COUNT(leads.leads_id) AS Cuenta_Leads
+FROM clients
+LEFT JOIN sites ON clients.client_id = sites.client_id
+LEFT JOIN leads ON sites.site_id = leads.site_id
+WHERE MONTH(leads.registered_datetime) >= 1 AND MONTH(leads.registered_datetime) >= 6 AND YEAR(leads.registered_datetime) >= "2011"
+GROUP BY clients.client_id
+ORDER BY clients.client_id ASC;
+
+
 -- 8. ¿Qué consulta ejecutaría para obtener una lista de nombres de clientes y el número total de clientes potenciales que 
 -- hemos generado para cada uno de los sitios de nuestros clientes entre el 1 de enero de 2011 y el 31 de diciembre de 2011? 
+
+
+SELECT CONCAT(clients.first_name," ", clients.last_name) AS Cliente, sites.domain_name AS Dominio, COUNT(*) AS 'Total', sites.created_datetime AS 'Fecha Creada'
+FROM leads
+JOIN sites ON leads.site_id = sites.site_id
+JOIN clients ON sites.client_id = clients.client_id
+WHERE registered_datetime BETWEEN '2011/01/01' AND '2011/12/31'
+GROUP BY sites.client_id, sites.site_id;
+
+
 -- Solicite esta consulta por ID de cliente. Presente una segunda consulta que muestre todos los clientes, los nombres del 
 -- sitio y el número total de clientes potenciales generados en cada sitio en todo momento.
+
+SELECT CONCAT(clients.first_name," ", clients.last_name) AS Cliente, sites.domain_name as Website, COUNT(leads.leads_id) AS Total_Leads
+FROM clients
+LEFT JOIN sites ON clients.client_id = sites.client_id
+LEFT JOIN leads on sites.site_id = leads.site_id
+GROUP BY clients.client_id, sites.domain_name, sites.site_id
+ORDER BY clients.client_id, sites.site_id;
+
+
 -- 9. Escriba una sola consulta que recupere los ingresos totales recaudados de cada cliente para cada mes del año. Pídalo 
 -- por ID de cliente.
+
+SELECT CONCAT(clients.first_name," ", clients.last_name) AS Cliente, SUM(billing.amount) AS Total_Ingresos,
+DATE_FORMAT(billing.charged_datetime, '%M') AS Mes, DATE_FORMAT(billing.charged_datetime, '%Y') AS Año
+FROM billing
+LEFT JOIN clients ON billing.client_id = clients.client_id
+GROUP BY clients.client_id, Mes, Año
+ORDER BY clients.client_id, Mes, Año;
+
+
+
 -- 10. Escriba una sola consulta que recupere todos los sitios que posee cada cliente. Agrupe los resultados para que cada 
 -- fila muestre un nuevo cliente. Se volverá más claro cuando agregue un nuevo campo llamado 'sitios' que tiene todos los 
 -- sitios que posee el cliente. (SUGERENCIA: use GROUP_CONCAT) 
+
+
+SELECT CONCAT(clients.first_name," ", clients.last_name) AS Cliente,
+GROUP_CONCAT(sites.domain_name ORDER BY sites.domain_name DESC SEPARATOR " - ") AS Websites
+FROM clients
+LEFT JOIN sites ON clients.client_id = sites.client_id
+GROUP BY clients.client_id;
